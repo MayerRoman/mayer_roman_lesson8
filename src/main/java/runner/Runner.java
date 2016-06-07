@@ -19,26 +19,20 @@ public class Runner {
         List<Singer> musicCatalog = prepareMusicCatalog();
 
         System.out.println("From serialization with entities:");
-
-        String fileName = "MusicCatalog.ser";
-        Serializer serializer = new SerializerWithEntities();
-        serializer.save(musicCatalog, fileName);
-        List<Singer> singers = serializer.load(fileName);
-
-        singers.stream().forEach(System.out::println);
-
+        saveAndLoad(new SerializerWithEntities(), musicCatalog, "MusicCatalog.ser");
 
         System.out.println();
+
         System.out.println("From serialization in text format:");
+        saveAndLoad(new SerializerInText(), musicCatalog, "MusicLibrary.txt");
 
-        fileName = "MusicLibrary.txt";
-        Serializer serializerInText = new SerializerInText();
-        serializerInText.save(musicCatalog, fileName);
-        singers = serializerInText.load(fileName);
+    }
 
-        singers.stream().forEach(System.out::println);
+    private void saveAndLoad(Serializer serializer, List<Singer> musicCatalog, String outputFileName) {
+        serializer.save(musicCatalog, outputFileName);
+        List<Singer> loadedSingers = serializer.load(outputFileName);
 
-
+        loadedSingers.stream().forEach(System.out::println);
     }
 
     private List<Singer> prepareMusicCatalog() {

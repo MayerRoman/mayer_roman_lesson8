@@ -1,5 +1,6 @@
 package serializer.impl;
 
+import exception.SerializingException;
 import model.Album;
 import model.Singer;
 import model.Song;
@@ -14,6 +15,12 @@ import java.util.List;
  */
 public class SerializerInText implements Serializer {
 
+    private final static String SINGER_NAME_MARKER = "singerName: ";
+    private final static String ALBUM_NAME_MARKER = "albumName: ";
+    private final static String ALBUM_GENRE_MARKER = "genre: ";
+    private final static String SONG_TITLE_MARKER = "title: ";
+    private final static String SONG_DURATION_MARKER = "duration: ";
+
     public void save(List<Singer> singers, String fileName) {
 
         StringBuilder outputText = new StringBuilder();
@@ -26,11 +33,12 @@ public class SerializerInText implements Serializer {
             }
         }
 
-        try (FileOutputStream outputStream = new FileOutputStream(fileName);) {
-            outputStream.write(outputText.toString().getBytes());
+        try (FileOutputStream outputStream = new FileOutputStream(fileName);
+            PrintWriter printWriter = new PrintWriter(outputStream)) {
+            printWriter.println(outputText.toString());
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new SerializingException("Crash during saving using SerializerInText", e);
         }
 
     }
@@ -43,7 +51,7 @@ public class SerializerInText implements Serializer {
 
         outputText.append("<###\n");
         outputText.append("Singer").append(singerNumber).append(":\n");
-        outputText.append("singerName: ").append(singer.getName()).append("\n");
+        outputText.append(SINGER_NAME_MARKER).append(singer.getName()).append("\n");
 
         for (int i = 0; i < singer.getAlbums().size(); i++) {
             writeAlbumInOutputText(singer.getAlbum(i), i + 1, outputText);
@@ -58,8 +66,8 @@ public class SerializerInText implements Serializer {
 
         outputText.append("<***\n");
         outputText.append("Album").append(albumNumber).append(":\n");
-        outputText.append("albumName: ").append(album.getName()).append("\n");
-        outputText.append("genre: ").append(album.getGenre()).append("\n");
+        outputText.append(ALBUM_NAME_MARKER).append(album.getName()).append("\n");
+        outputText.append(ALBUM_GENRE_MARKER).append(album.getGenre()).append("\n");
 
         for (int i = 0; i < album.getSongs().size(); i++) {
             writeSongInOutputText(album.getSong(i), i + 1, outputText);
@@ -71,11 +79,12 @@ public class SerializerInText implements Serializer {
 
         outputText.append("<<<\n");
         outputText.append("Song").append(songNumber).append(":\n");
-        outputText.append("title: ").append(song.getTitle()).append("\n");
-        outputText.append("duration: ").append(song.getDuration()).append("\n");
+        outputText.append(SONG_TITLE_MARKER).append(song.getTitle()).append("\n");
+        outputText.append(SONG_DURATION_MARKER).append(song.getDuration()).append("\n");
         outputText.append(">>>\n");
 
     }
+
 
 
     public List<Singer> load(String fileName) {
@@ -92,18 +101,16 @@ public class SerializerInText implements Serializer {
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 
             while (reader.ready()) {
-                inputText.append((char) reader.read());
+                inputText.append(reader.readLine());
+                inputText.append("\n");
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new SerializingException("Crash during loading using SerializerInText", e);
         }
 
         return inputText.toString();
     }
-
-
-    private final static String SINGER_NAME_MARKER = "singerName: ";
 
     private List<Singer> parsTextFromFile(String textFromFile) {
         List<Singer> singers = new ArrayList<>();
@@ -144,9 +151,6 @@ public class SerializerInText implements Serializer {
 
         return singers;
     }
-
-    private final static String ALBUM_NAME_MARKER = "albumName: ";
-    private final static String ALBUM_GENRE_MARKER = "genre: ";
 
     private List<Album> parsAlbumsFromString(String albumsPartOfInputText) {
         List<Album> albums = new ArrayList<>();
@@ -195,9 +199,6 @@ public class SerializerInText implements Serializer {
 
         return albums;
     }
-
-    private final static String SONG_TITLE_MARKER = "title: ";
-    private final static String SONG_DURATION_MARKER = "duration: ";
 
     private List<Song> parsSongsFromString(String songsPartOfInputText) {
         List<Song> songs = new ArrayList<>();

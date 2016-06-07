@@ -1,5 +1,6 @@
 package serializer.impl;
 
+import exception.SerializingException;
 import model.Album;
 import model.Singer;
 import model.Song;
@@ -25,7 +26,7 @@ public class SerializerWithEntities implements Serializer {
             outputStream.writeObject(singerEntities);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new SerializingException("Crash during saving using SerializerWithEntities", e);
         }
     }
 
@@ -92,7 +93,7 @@ public class SerializerWithEntities implements Serializer {
             singers = convertSingersFromEntityToModel(singerEntities);
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new SerializingException("Crash during loading using SerializerWithEntities", e);
         }
 
         return singers;
